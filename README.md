@@ -1,78 +1,289 @@
-# VFA-Lab
-mini “zárt lab” docker-compose
+# VFA-Lab — Virtual Flow Agreement Demo
 
-Ami:
-- Client → Policy Gateway (L3.5) → Merchant API
-- VFA token nélkül → sandbox (vagy limited)
-- VFA tokennel → prod (merchant)
-- Revokáció → azonnal visszavált sandboxra / deny
+> A minimal policy-driven trust gateway demo with cryptographic visa tokens.
+
+![Docker](https://img.shields.io/badge/docker-ready-blue)
+![Compose](https://img.shields.io/badge/compose-v2-blue)
+![Status](https://img.shields.io/badge/status-prototype-orange)
+![License](https://img.shields.io/badge/license-Apache--2.0-green)
+
+Minimal, end-to-end demonstration of a **policy-driven trust gateway** that routes traffic based on a signed visa token.
+
+This lab shows how an application-layer decision engine can dynamically route requests between **sandbox** and **production** backends using cryptographic proof.
 
 ---
 
-Mappastruktúra:
-```
-vfa-lab/
-  docker-compose.yml
-  gateway/
-    Dockerfile
-    package.json
-    server.js
-    policy.js
-    revocations.json
-  merchant/
-    Dockerfile
-    app.py
-  sandbox/
-    Dockerfile
-    app.py
-```
+## What this demo demonstrates
+
+* Policy-driven routing at the gateway
+* Signed visa token verification
+* Automatic downgrade to sandbox
+* Token revocation
+* Zero-trust style access control
+* Developer-friendly observability
+
 ---
-A gateway dönt és proxy-z:
-- GET /healthz
-- POST /issue -> ad egy token-t (lab kényelmi)
-- POST /revoke -> revokál token_id-t (tokenből vagy explicit)
-- ANY /api/* -> policy döntés után merchant vagy sandbox
 
-Futatás  
-A vfa-lab/ mappában:
+## Architecture
 
-```Bash
-docker compose up --build
+```
+Client → Gateway (VFA decision) → Merchant (PROD)
+                               ↘ Sandbox (LIMITED)
 ```
 
-Gateway kint lesz: http://localhost:8080
+### Components
 
-Demo parancsok (3 perces “wow”)
+| Service  | Role                            |
+| -------- | ------------------------------- |
+| gateway  | Decision engine + reverse proxy |
+| merchant | Production backend              |
+| sandbox  | Limited backend                 |
+| client   | Demo UI                         |
 
-1) Token nélkül → sandbox
-```Bash
-curl -s http://localhost:8080/api/hello | jq
-curl -s http://localhost:8080/api/data | jq
-```
-2) Token igénylés
-```Bash
-TOKEN=$(curl -s -X POST http://localhost:8080/issue | jq -r .visaToken)
-echo "$TOKEN"
-```
-3) Token-nel → merchant (prod)
-```Bash
-curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/hello | jq
-curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/data | jq
-```
-4) Revokáció → azonnal vissza sandbox
-```Bash
-curl -s -X POST http://localhost:8080/revoke -H "Content-Type: application/json" \
-  -d "{\"visaToken\":\"$TOKEN\"}" | jq
+---
 
-curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/hello | jq
-```
-Extra: élő policy log   
-A gateway logban látod:
-- decision: prod|sandbox|deny
-- reason: ok|missing_token|expired|revoked|bad_sig
+## Requirements
 
-Ha még látványosabb: packet capture (opcionális)   
-Linux hoston (nem kötelező):
-```Bash
-sudo tcpdump -ni any port 8080
+- Docker Engine 24+
+- Docker Compose V2
+- curl (optional)
+- jq (optional, for pretty output)
+
+## Quick start
+
+### 1. Build and start
+
+```bash
+docker compose up -d --build
 ```
+
+### 2. Open the demo client
+
+If using the simple static server:
+
+```bash
+cd client
+python3 -m http.server 9898
+```
+
+Open:
+
+```
+http://localhost:9898
+```
+
+---
+
+## Services and ports
+
+| Service           | URL                   |
+| ----------------- | --------------------- |
+| Gateway           | http://localhost:8080 |
+| Merchant (direct) | http://localhost:5000 |
+| Sandbox (direct)  | http://localhost:5001 |
+| Client (static)   | http://localhost:9898 |
+
+---
+
+## Basic flow
+
+### Without token
+
+```
+GET /api/hello
+→ routed to SANDBOX
+```
+
+### With valid token
+
+```
+POST /issue → visaToken
+GET /api/hello (Authorization: Bearer …)
+→ routed to PROD
+```
+
+---
+
+## Token lifecycle
+
+### Issue token
+
+```bash
+curl -X POST http://localhost:8080/issue \
+  -H "Content-Type: application/json" \
+  -d '{"ttl_ms":60000}'
+```
+
+### Use token
+
+```bash
+curl http://localhost:8080/api/hello \
+  -H "Authorization: Bearer <visaToken>"
+```
+
+### Revoke token
+
+```bash
+curl -X POST http://localhost:8080/revoke \
+  -H "Content-Type: application/json" \
+  -d '{"visaToken":"<visaToken>"}'
+```
+
+---
+
+## Policy configuration
+
+Gateway behavior is controlled via environment variables.
+
+### DEFAULT_ROUTE
+
+Controls behavior when no token is present.
+
+| Value   | Behavior                 |
+| ------- | ------------------------ |
+| sandbox | default → limited access |
+| prod    | allow full access        |
+| deny    | block request            |
+
+Example in `docker-compose.yml`:
+
+```yaml
+DEFAULT_ROUTE=sandbox
+```
+
+---
+
+## Decision logic
+
+The gateway evaluates:
+
+1. Token present?
+2. Signature valid?
+3. Token revoked?
+4. Token expired?
+
+Then routes:
+
+```
+valid token → PROD
+invalid/missing → SANDBOX (or DENY by policy)
+```
+
+---
+
+## Observability
+
+Gateway logs include:
+
+* timestamp
+* path
+* decision
+* reason
+* token id
+
+Example:
+
+```json
+{
+  "decision": "sandbox",
+  "reason": "missing_token"
+}
+```
+
+---
+
+## Useful test commands
+
+### Sandbox (no token)
+
+```bash
+curl http://localhost:8080/api/hello
+```
+
+### With token
+
+```bash
+TOKEN=$(curl -s -X POST http://localhost:8080/issue \
+  -H "Content-Type: application/json" \
+  -d '{"ttl_ms":60000}' | jq -r .visaToken)
+
+curl http://localhost:8080/api/hello \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+---
+
+## Demo limitations (by design)
+
+This is an MVP lab environment.
+
+Not included (yet):
+
+* audience binding
+* device binding
+* nonce / replay protection
+* distributed revocation
+* key rotation
+
+---
+
+## Possible next steps
+
+* scope-based routing
+* risk scoring
+* ECDSA tokens
+* mTLS upstream
+* distributed revocation list
+* hardware-backed keys
+
+---
+
+## License
+
+Apache License
+Version 2.0, January 2004
+http://www.apache.org/licenses/
+
+Copyright 2026 Sandor Csicsai
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+---
+
+## About
+
+VFA (Virtual Flow Agreement) explores a **policy-driven trust layer** that can operate between clients and services without modifying the application protocol itself.
+
+---
+
+## Security note
+
+This repository is a demonstration environment.
+
+Do NOT use the shared HMAC secret in production.
+
+Production deployments MUST implement:
+
+- secure key storage
+- key rotation
+- audience binding
+- replay protection
+- proper authentication hardening
+
+---
+
+**FlowAccord concept demo**
+
+##  Demo
+
+![VFA Demo](docs/images/demo.png)
