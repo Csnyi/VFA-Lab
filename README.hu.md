@@ -12,25 +12,25 @@ Ami:
 Mappastruktúra:
 ```
 vfa-lab/
-data/
-	placeholder
-docs
-	images/
-		demo.png
-gateway/
-	client/
-		index.html
-	Dockerfile
-	package.json
-	policy.js
-	revocations.json
-	server.js
-merchant/
-	app.py
-	Dockerfile
-sandbox/
-	app.py
-	Dockerfile
+	data/
+		placeholder
+	docs
+		images/
+			demo.png
+	gateway/
+		client/
+			index.html
+		Dockerfile
+		package.json
+		policy.js
+		revocations.json
+		server.js
+	merchant/
+		app.py
+		Dockerfile
+	sandbox/
+		app.py
+		Dockerfile
 ```
 ---
 A gateway dönt és proxy-z:
