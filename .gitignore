@@ -34,8 +34,8 @@ pip-log.txt
 *.pid.lock
 
 # local data (optional — ha akarod verziózni, töröld ezt)
-data/
-gateway/revocations.json
+# data/
+# gateway/revocations.json
 
 # ========================
 # IDE

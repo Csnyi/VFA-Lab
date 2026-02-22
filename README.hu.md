@@ -12,19 +12,25 @@ Ami:
 Mappastruktúra:
 ```
 vfa-lab/
-  docker-compose.yml
-  gateway/
-    Dockerfile
-    package.json
-    server.js
-    policy.js
-    revocations.json
-  merchant/
-    Dockerfile
-    app.py
-  sandbox/
-    Dockerfile
-    app.py
+data/
+	placeholder
+docs
+	images/
+		demo.png
+gateway/
+	client/
+		index.html
+	Dockerfile
+	package.json
+	policy.js
+	revocations.json
+	server.js
+merchant/
+	app.py
+	Dockerfile
+sandbox/
+	app.py
+	Dockerfile
 ```
 ---
 A gateway dönt és proxy-z:
@@ -83,4 +89,5 @@ newgrp docker \
 docker compose ps \ 
 docker compose up -d --build
 docker compose ps
+docker compose down
 ```
