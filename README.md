@@ -286,8 +286,11 @@ Production deployments MUST implement:
 
 ##  Demo
 
-![VFA Demo](docs/images/demo_0.png)
+request token
 ![VFA Demo Token](docs/images/demo_token.png)
+api/hello
 ![VFA Demo Hello](docs/images/demo_hello.png)
+api/data
 ![VFA Demo Data](docs/images/demo_data.png)
+revocation
 ![VFA Demo Revoked](docs/images/demo_revoke.png)
