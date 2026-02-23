@@ -84,10 +84,13 @@ sudo tcpdump -ni any port 8080
 ```
 Docker parancsok
 ```
+# Jog beállítás
 sudo usermod -aG docker $USER \
-newgrp docker \
-docker compose ps \ 
-docker compose up -d --build
+newgrp docker 
+# futó dockerek
 docker compose ps
+# indítás
+docker compose up -d --build
+# leállítás
 docker compose down
 ```
