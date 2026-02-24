@@ -294,3 +294,98 @@ api/data
 ![VFA Demo Data](docs/images/demo_data.png)
 revocation
 ![VFA Demo Revoked](docs/images/demo_revoke.png)
+
+## Rendszerszintű architektúra (VFA-MVP + vfa-lab együtt)
+
+```mermaid
+flowchart LR
+  %% Actors
+  U["User / Client<br/>Browser / App / CLI"] -->|HTTPS request| G
+
+  %% Policy plane
+  subgraph P["VFA Policy Plane (L3.5 overlay)"]
+    G["Policy Gateway<br/>Decision: prod / sandbox / deny"]
+    R[("Revocation Store<br/>JSON/SQLite")]
+    G <-->|read/update| R
+  end
+
+  %% Upstreams
+  G -->|prod route| M["Merchant API (PROD)<br/>Business endpoints"]
+  G -->|sandbox route| S["Sandbox API<br/>Limited / safe responses"]
+
+  %% Identity plane
+  subgraph I["VFA Identity Plane (MVP)"]
+    W["Wallet UI / Wallet Service<br/>issue & manage visaToken"]
+    V["Token Verify Logic<br/>(HMAC now, ECDSA later)"]
+    W -->|issue token| U
+    G -->|verify token| V
+  end
+
+  %% Notes
+  U -. optional token .-> G
+```
+
+## Kérésszintű folyamat (mi történik egy requestnél)
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant C as Client
+  participant G as Policy Gateway (L3.5)
+  participant R as Revocation Store
+  participant M as Merchant (PROD)
+  participant S as Sandbox
+
+  C->>G: HTTP(S) request /api/* (optional: Bearer visaToken)
+  G->>R: Load revocations (tokenId)
+  alt Token valid & not revoked
+    G->>M: Proxy request (decision=prod)
+    M-->>G: Response (full)
+    G-->>C: Response
+  else Missing/invalid/revoked token
+    alt DEFAULT_ROUTE = deny
+      G-->>C: 403 Denied by policy
+    else DEFAULT_ROUTE = sandbox
+      G->>S: Proxy request (decision=sandbox)
+      S-->>G: Response (limited)
+      G-->>C: Response
+    end
+  end
+```
+
+## Rétegdiagram (hol ül az L3.5)
+
+```mermaid
+flowchart TB
+  subgraph Stack["Kommunikációs stack (mentális modell)"]
+    L2["L2: Link (Ethernet/Wi-Fi)"]
+    L3["L3: IP routing"]
+    L35["L3.5: VFA Policy Overlay<br/>(decision plane, optional)"]
+    L4["L4: TCP"]
+    L5["L5: TLS"]
+    L7["L7: Application (HTTP/API)"]
+  end
+
+  L2 --> L3 --> L4 --> L5 --> L7
+  L35 -. influences .-> L5
+  L35 -. routes .-> L7
+```
+```mermaid
+flowchart TB
+  Title["Kommunikációs stack (mentális modell)"]
+
+  subgraph Stack
+    direction TB
+    L2["L2: Link (Ethernet/Wi-Fi)"]
+    L3["L3: IP routing"]
+    L35["L3.5: VFA Policy Overlay<br/>(decision plane, optional)"]
+    L4["L4: TCP"]
+    L5["L5: TLS"]
+    L7["L7: Application (HTTP/API)"]
+  end
+
+  Title --> L2
+  L2 --> L3 --> L4 --> L5 --> L7
+  L35 -. influences .-> L5
+  L35 -. routes .-> L7
+```
