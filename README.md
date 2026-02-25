@@ -295,7 +295,7 @@ api/data
 revocation
 ![VFA Demo Revoked](docs/images/demo_revoke.png)
 
-## Rendszerszintű architektúra (VFA-MVP + vfa-lab együtt)
+## System-level architecture (VFA-MVP + vfa-lab together)
 
 ```mermaid
 flowchart LR
@@ -325,7 +325,7 @@ flowchart LR
   U -. optional token .-> G
 ```
 
-## Kérésszintű folyamat (mi történik egy requestnél)
+## Request-level process (what happens with a request)
 
 ```mermaid
 sequenceDiagram
@@ -353,23 +353,8 @@ sequenceDiagram
   end
 ```
 
-## Rétegdiagram (hol ül az L3.5)
+## Layer diagram (where L3.5 sits)
 
-```mermaid
-flowchart TB
-  subgraph Stack["Kommunikációs stack (mentális modell)"]
-    L2["L2: Link (Ethernet/Wi-Fi)"]
-    L3["L3: IP routing"]
-    L35["L3.5: VFA Policy Overlay<br/>(decision plane, optional)"]
-    L4["L4: TCP"]
-    L5["L5: TLS"]
-    L7["L7: Application (HTTP/API)"]
-  end
-
-  L2 --> L3 --> L4 --> L5 --> L7
-  L35 -. influences .-> L5
-  L35 -. routes .-> L7
-```
 ```mermaid
 flowchart TB
   Title["Kommunikációs stack (mentális modell)"]
