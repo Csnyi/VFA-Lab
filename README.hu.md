@@ -16,7 +16,9 @@ vfa-lab/
 		placeholder
 	docs
 		images/
-			demo.png
+			demo*.png
+		pdf/
+			*.pdf
 	gateway/
 		client/
 			index.html
