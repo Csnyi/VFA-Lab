@@ -31,6 +31,44 @@ Client → Gateway (VFA decision) → Merchant (PROD)
                                ↘ Sandbox (LIMITED)
 ```
 
+### TLS Handshake with VFA Extension (Concept)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant W as Identity Wallet
+    participant G as VFA Gateway
+    participant S as Backend Service
+
+    Note over C,W: Intent preparation
+    C->>W: Request visa token (scope, ttl)
+    W-->>C: Signed VFA visa token
+
+    Note over C,G: TLS handshake with VFA extension
+    C->>G: ClientHello + vfa_token
+    G->>G: Verify token signature & policy
+
+    alt Valid token
+        G-->>C: ServerHello + VFA accepted
+        Note over C,G: Secure session established
+        C->>G: HTTPS request
+        G->>S: Route to production backend
+        S-->>C: Response
+    else Invalid or missing token
+        G-->>C: ServerHello (sandbox policy)
+        C->>G: HTTPS request
+        G->>S: Route to sandbox backend
+        S-->>C: Limited response
+    end
+```
+
+VFA introduces an optional handshake extension where a **cryptographically signed visa token** can be presented during connection establishment.
+
+The gateway evaluates the token and decides whether the request should be routed to **production services** or **sandbox environments**.
+
+This approach enables **policy-driven trust decisions before application logic is executed.**
+
 ### Components
 
 | Service  | Role                            |
