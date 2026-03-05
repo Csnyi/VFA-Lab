@@ -27,15 +27,34 @@ This lab shows how an application-layer decision engine can dynamically route re
 ## Architecture
 
 ```mermaid
-flowchart LR
-  C[Client] -->|TLS ClientHello + vfa_token| GW[VFA Gateway]
-  GW -->|verify + policy| DEC{Decision}
-  DEC -->|valid token| PROD[PROD service]
-  DEC -->|missing/invalid| SB[SANDBOX service]
-  DEC -->|blocked| DENY[[DENY]]
-  PROD --> C
-  SB --> C
-  DENY --> C
+flowchart TB
+
+  subgraph Client
+    U["User"]
+    W["Identity Wallet"]
+  end
+
+  subgraph Gateway
+    G["VFA Gateway"]
+    P["Policy Engine"]
+  end
+
+  subgraph Services
+    PROD["Production Service"]
+    SB["Sandbox Service"]
+  end
+
+  U -->|"intent"| W
+  W -->|"VFA visa token"| G
+  U -->|"HTTPS request + token"| G
+
+  G --> P
+
+  P -->|"valid"| PROD
+  P -->|"invalid / missing"| SB
+
+  PROD -->|"response"| U
+  SB -->|"limited response"| U
 ```
 
 ### TLS Handshake with VFA Extension (Concept)
