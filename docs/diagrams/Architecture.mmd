@@ -1,0 +1,28 @@
+flowchart TB
+
+  subgraph Client
+    U["User"]
+    W["Identity Wallet"]
+  end
+
+  subgraph Gateway
+    G["VFA Gateway"]
+    P["Policy Engine"]
+  end
+
+  subgraph Services
+    PROD["Production Service"]
+    SB["Sandbox Service"]
+  end
+
+  U -->|"intent"| W
+  W -->|"VFA visa token"| G
+  U -->|"HTTPS request + token"| G
+
+  G --> P
+
+  P -->|"valid"| PROD
+  P -->|"invalid / missing"| SB
+
+  PROD -->|"response"| U
+  SB -->|"limited response"| U

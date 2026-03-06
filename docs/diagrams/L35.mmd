@@ -1,0 +1,17 @@
+flowchart TB
+  Title["Kommunikációs stack (mentális modell)"]
+
+  subgraph Stack
+    direction TB
+    L2["L2: Link (Ethernet/Wi-Fi)"]
+    L3["L3: IP routing"]
+    L35["L3.5: VFA Policy Overlay<br/>(decision plane, optional)"]
+    L4["L4: TCP"]
+    L5["L5: TLS"]
+    L7["L7: Application (HTTP/API)"]
+  end
+
+  Title --> L2
+  L2 --> L3 --> L4 --> L5 --> L7
+  L35 -. influences .-> L5
+  L35 -. routes .-> L7

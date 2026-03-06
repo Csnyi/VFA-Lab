@@ -1,11 +1,19 @@
 # VFA-Lab — Virtual Flow Agreement Demo
 
-> A minimal policy-driven trust gateway demo with cryptographic visa tokens.
+> A policy-driven trust gateway that routes requests using cryptographic visa tokens.
+
+## Repositories
+
+- **VFA-Lab** – architecture, research, and gateway demo
+- **VFA-MVP** – wallet / merchant reference implementation → https://github.com/Csnyi/VFA-MVP
 
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
 ![Compose](https://img.shields.io/badge/compose-v2-blue)
 ![Status](https://img.shields.io/badge/status-prototype-orange)
 ![License](https://img.shields.io/badge/license-Apache--2.0-green)
+
+⚠ Experimental research prototype  
+⚠ Not production ready
 
 Minimal, end-to-end demonstration of a **policy-driven trust gateway** that routes traffic based on a signed visa token.
 
@@ -123,29 +131,44 @@ docker compose up -d --build
 
 ### 2. Open the demo client
 
-If using the simple static server:
+The demo client is served by the gateway.
 
-```bash
-cd client
-python3 -m http.server 9898
-```
-
-Open:
+Once the gateway is running, open:
 
 ```
-http://localhost:9898
+http://localhost:8080
 ```
 
----
+The client files are located in:
+
+```
+gateway/client/
+```
+
+The gateway exposes them via:
+
+```javascript
+app.use("/", express.static(path.join(__dirname, "client")));
+```
+
+### Expected result
+
+After starting the stack you should be able to:
+
+1. Open the demo UI  
+   http://localhost:8080
+
+2. Issue a visa token
+
+3. Call the API with and without the token and observe routing decisions.
 
 ## Services and ports
 
 | Service           | URL                   |
 | ----------------- | --------------------- |
-| Gateway           | http://localhost:8080 |
+| Gateway + Client  | http://localhost:8080 |
 | Merchant (direct) | http://localhost:5000 |
 | Sandbox (direct)  | http://localhost:5001 |
-| Client (static)   | http://localhost:9898 |
 
 ---
 
@@ -344,11 +367,13 @@ Production deployments MUST implement:
 - replay protection
 - proper authentication hardening
 
+See [SECURITY.md](docs/SECURITY.md "SECURITY.md") for details and recommended production hardening.
+
 ---
 
 **FlowAccord concept demo**
 
-##  Demo
+## Demo
 
 request token
 ![VFA Demo Token](docs/images/demo_token.png)

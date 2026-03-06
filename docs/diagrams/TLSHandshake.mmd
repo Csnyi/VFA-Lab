@@ -1,0 +1,27 @@
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant W as Identity Wallet
+    participant G as VFA Gateway
+    participant S as Backend Service
+
+    Note over C,W: Intent preparation
+    C->>W: Request visa token (scope, ttl)
+    W-->>C: Signed VFA visa token
+
+    Note over C,G: TLS handshake with VFA extension
+    C->>G: ClientHello + vfa_token
+    G->>G: Verify token signature & policy
+
+    alt Valid token
+        G-->>C: ServerHello + VFA accepted
+        Note over C,G: Secure session established
+        C->>G: HTTPS request
+        G->>S: Route to production backend
+        S-->>C: Response
+    else Invalid or missing token
+        G-->>C: ServerHello (sandbox policy)
+        C->>G: HTTPS request
+        G->>S: Route to sandbox backend
+        S-->>C: Limited response
+    end

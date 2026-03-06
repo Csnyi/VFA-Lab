@@ -1,153 +1,49 @@
 <!DOCTYPE html>
-<html lang="hu">
+<html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>VFA Lab Client</title>
-<link rel="icon" type="image/x-icon" href="favicon.ico">
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #1e1e1e;
-    color: #eee;
-    padding: 20px;
-  }
-  h1 { color: #7cc7ff; }
-  input, button, textarea {
-    padding: 8px;
-    margin: 5px 0;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  button {
-    background: #507A90;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-  button:hover {
-    background: #6593AD;
-  }
-  .row { margin-bottom: 15px; }
-  pre {
-    background: #111;
-    padding: 10px;
-    border-radius: 4px;
-    overflow-x: auto;
-  }
-  .small { font-size: 0.85em; opacity: 0.8; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VFA Lab Client</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="client.css">
 </head>
+
 <body>
 
-<h1>VFA Policy Lab – Mini Client</h1>
+  <h1>VFA Policy Lab - Mini Client</h1>
 
-<div class="row">
-  <label>Gateway URL</label>
-  <input id="baseUrl" value="http://localhost:8080">
-</div>
+  <div class="row">
+    <label>Gateway URL</label>
+    <input id="baseUrl" value="http://localhost:8080">
+  </div>
 
-<div class="row">
-  <label>Visa Token</label>
-  <textarea id="token" rows="2" placeholder="Ide jön a token (nem kötelező)"></textarea>
-</div>
+  <div class="row">
+    <label>Visa Token</label>
+    <textarea id="token" rows="2" placeholder="The token goes here (optional)"></textarea>
+  </div>
 
-<div class="row">
-  <button onclick="issueToken()">Token igénylés</button>
-  <button onclick="revokeToken()">Token revokálás</button>
-</div>
+  <div class="row">
+    <button onclick="issueToken()">Token request</button>
+    <button onclick="revokeToken()">Token revocation</button>
+  </div>
 
-<hr>
+  <hr>
 
-<div class="row">
-  <button onclick="callHello()">/api/hello hívás</button>
-  <button onclick="callData()">/api/data hívás</button>
-</div>
+  <div class="row">
+    <button onclick="callHello()">/api/hello call</button>
+    <button onclick="callData()">/api/data call</button>
+  </div>
 
-<h3>Válasz</h3>
-<pre id="output">{ }</pre>
+  <h3>Response</h3>
+  <pre id="output">{ }</pre>
 
-<div class="small">
-  Tipp: Token nélkül SANDBOX, tokennel PROD.<br>
-  Revokálás után vissza SANDBOX.
-</div>
+  <div class="small">
+    Tip: Without token SANDBOX, with token PROD.<br>
+    After revocation, back to SANDBOX.
+  </div>
 
-<script>
-function getBase() {
-  return document.getElementById("baseUrl").value.trim();
-}
-
-function getToken() {
-  return document.getElementById("token").value.trim();
-}
-
-function setOutput(obj) {
-  document.getElementById("output").textContent =
-    JSON.stringify(obj, null, 2);
-}
-
-async function apiFetch(path, options = {}) {
-  const base = getBase();
-  const token = getToken();
-
-  options.headers = options.headers || {};
-  if (token) {
-    options.headers["Authorization"] = "Bearer " + token;
-  }
-
-  const res = await fetch(base + path, options);
-  const text = await res.text();
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    return { raw: text, status: res.status };
-  }
-}
-
-async function issueToken() {
-  const base = getBase();
-  const res = await fetch(base + "/issue", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ttl_ms: 300000 })
-  });
-
-  const data = await res.json();
-  if (data.visaToken) {
-    document.getElementById("token").value = data.visaToken;
-  }
-  setOutput(data);
-}
-
-async function revokeToken() {
-  const base = getBase();
-  const token = getToken();
-
-  if (!token) {
-    alert("Nincs token!");
-    return;
-  }
-
-  const res = await fetch(base + "/revoke", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ visaToken: token })
-  });
-
-  const data = await res.json();
-  setOutput(data);
-}
-
-async function callHello() {
-  const data = await apiFetch("/api/hello");
-  setOutput(data);
-}
-
-async function callData() {
-  const data = await apiFetch("/api/data");
-  setOutput(data);
-}
-</script>
-
+  <script src="client.js"></script>
 </body>
+
 </html>

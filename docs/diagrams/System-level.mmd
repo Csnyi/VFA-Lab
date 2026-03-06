@@ -1,0 +1,25 @@
+flowchart LR
+  %% Actors
+  U["User / Client<br/>Browser / App / CLI"] -->|HTTPS request| G
+
+  %% Policy plane
+  subgraph P["VFA Policy Plane (L3.5 overlay)"]
+    G["Policy Gateway<br/>Decision: prod / sandbox / deny"]
+    R[("Revocation Store<br/>JSON/SQLite")]
+    G <-->|read/update| R
+  end
+
+  %% Upstreams
+  G -->|prod route| M["Merchant API (PROD)<br/>Business endpoints"]
+  G -->|sandbox route| S["Sandbox API<br/>Limited / safe responses"]
+
+  %% Identity plane
+  subgraph I["VFA Identity Plane (MVP)"]
+    W["Wallet UI / Wallet Service<br/>issue & manage visaToken"]
+    V["Token Verify Logic<br/>(HMAC now, ECDSA later)"]
+    W -->|issue token| U
+    G -->|verify token| V
+  end
+
+  %% Notes
+  U -. optional token .-> G

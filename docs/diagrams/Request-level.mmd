@@ -1,0 +1,23 @@
+sequenceDiagram
+  autonumber
+  participant C as Client
+  participant G as Policy Gateway (L3.5)
+  participant R as Revocation Store
+  participant M as Merchant (PROD)
+  participant S as Sandbox
+
+  C->>G: HTTP(S) request /api/* (optional: Bearer visaToken)
+  G->>R: Load revocations (tokenId)
+  alt Token valid & not revoked
+    G->>M: Proxy request (decision=prod)
+    M-->>G: Response (full)
+    G-->>C: Response
+  else Missing/invalid/revoked token
+    alt DEFAULT_ROUTE = deny
+      G-->>C: 403 Denied by policy
+    else DEFAULT_ROUTE = sandbox
+      G->>S: Proxy request (decision=sandbox)
+      S-->>G: Response (limited)
+      G-->>C: Response
+    end
+  end
