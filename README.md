@@ -355,19 +355,28 @@ VFA (Virtual Flow Agreement) explores a **policy-driven trust layer** that can o
 
 ## Security note
 
-This repository is a demonstration environment.
+This repository is a **demonstration environment**.
 
-Do NOT use the shared HMAC secret in production.
+The implementation included here is intended only to illustrate the **VFA policy decision concept** and **must not be used in production systems**.
 
-Production deployments MUST implement:
+### Demo secret
 
-- secure key storage
-- key rotation
-- audience binding
-- replay protection
-- proper authentication hardening
+The project uses a **shared HMAC secret** for demonstration purposes.
 
-See [SECURITY.md](docs/SECURITY.md "SECURITY.md") for details and recommended production hardening.
+This mechanism is intentionally simplified and does **not** represent a production-grade security design.
+
+### Production requirements
+
+Any real deployment MUST implement:
+
+* secure key storage
+* key rotation
+* audience binding
+* replay protection
+* proper authentication hardening
+
+For further details and recommended production practices see
+[SECURITY.md](docs/SECURITY.md)
 
 ---
 
