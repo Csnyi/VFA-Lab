@@ -6,6 +6,7 @@
 
 - **VFA-Lab** – architecture, research, and gateway demo
 - **VFA-MVP** – wallet / merchant reference implementation → https://github.com/Csnyi/VFA-MVP
+- **VFA-Spec** - protocol specification → https://github.com/Csnyi/VFA-Spec
 
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
 ![Compose](https://img.shields.io/badge/compose-v2-blue)
