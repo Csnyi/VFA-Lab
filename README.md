@@ -7,6 +7,7 @@
 Implementation and demonstration projects:
 
 - **VFA-MVP** – wallet / merchant reference implementation → https://github.com/Csnyi/VFA-MVP
+- **VFA-Lab** — architecture sandbox and gateway routing demo
 - **VFA-cloud-PoC** — cloud operation PoC (deployment scenario) → https://github.com/Csnyi/VFA-cloud-PoC
 - **VFA-Spec** - protocol specification → https://github.com/Csnyi/VFA-Spec
 
