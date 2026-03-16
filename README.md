@@ -459,7 +459,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-  Title["Kommunikációs stack (mentális modell)"]
+  Title["Communication stack (mental model)"]
 
   subgraph Stack
     direction TB
